@@ -1,0 +1,234 @@
+{% extends "layout.html" %}
+
+{%block title%}Home{% endblock%}
+
+
+
+{% block main%}
+
+<div class="container section">
+    <div class="d-flex flex-wrap gap-3 justify-content-center">
+        <div class="gap-3 d-flex flex-column col-lg align-items-center">
+            <h3>Search</h3>
+            <div class="gap-3 d-flex ">
+                <input class="form-control" type="text"  id="search_by_client" placeholder="search by client's name">
+                <input class="form-control" type="text"  id="search_by_brandname" placeholder="search by phone brand/name">
+    
+            </div>
+        </div>
+        <div class="gap-3 d-flex flex-column col-lg">
+            <h3>Filter</h3>
+            <div class="d-flex gap-3  flex-wrap">
+                <input class="form-control col" type="date"  id="filter_by_date">
+                <div class="d-flex flex-wrap gap-3">
+                    <div class="form-check d-flex  gap-1 flex-shrink-0 align-items-center">
+                        <input class="form-check-input" type="checkbox" value="on" id="check_fixed">
+                        <label class="form-check-label" for="check_fixed">
+                            Fixed devices
+                        </label>
+                    </div>
+                    <div class="form-check d-flex gap-1  flex-shrink-0 align-items-center">
+                        <input class="form-check-input" type="checkbox" value="on" id="check_returned" >
+                        <label class="form-check-label" for="check_returned">
+                            Returned devices
+                        </label>
+                    </div>
+                    <div class="form-check d-flex  gap-1 flex-shrink-0 align-items-center">
+                        <input class="form-check-input" type="checkbox" value="on" id="no_filter" checked>
+                        <label class="form-check-label" for="no_filter">
+                            No filter
+                        </label>
+                    </div>
+                    
+                </div>
+            </div>
+            
+    
+        </div>
+
+    </div>
+    
+    
+        
+        
+
+    
+    
+</div>
+{%if devices%}
+<!--table for the clients and there devices-->
+<div id="devices_table" class="table-responsive">
+<table class="align-middle table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Client Name</th>
+            <th scope="col">Client's Phone</th>
+            <th scope="col">Total Cost</th>
+            <th scope="col">Paid</th>
+            <th scope="col">Rest</th>
+            <th scope="col">Phone Brand</th>
+            <th scope="col">Phone Name</th>
+            <th scope="col">Issue Description</th>
+            <th scope="col">price</th>
+            
+
+        </tr>
+    </thead>
+    <tbody>
+        {% for device in devices %}
+            <tr>
+                <td>{{loop.index}}</td>
+                <td>{{device.first_name}} {{device.last_name}}</td>
+                <td>{{device.phone}}</td>
+                <td>{{"{:,.2f}".format(device.total_cost)}}</td>
+                <td>{{"{:,.2f}".format(device.deposit)}}</td>
+                <td>{{"{:,.2f}".format(device.rest)}}</td>
+                <td>{{device.brand}}</td>
+                <td>{{device.name}}</td>
+                <td>{{device.descr}}</td>
+                <td>{{"{:,.2f}".format(device.price)}}</td>
+            </tr>
+        {%endfor%}
+    </tbody>
+</table>
+</div>
+{%else%}
+<h1 class="text-info">There Is No Data To Show</h1>
+{%endif%}
+
+
+<script>
+    //generat where statment for the sql query 
+    var fixed = returned = like = filter = phone_like = ""
+    function generat_query(){
+        
+        if ($("#check_fixed").is(':checked')){
+            fixed = "1"
+        }else{
+            fixed = "0"
+        }
+
+        if ($("#check_returned").is(':checked')){
+            returned = "1"
+        }else{
+            returned = "0"
+        }
+
+        if ($("#no_filter").is(':checked')){
+            filter = "0"
+        }else{
+            filter = "1"
+        }
+
+
+
+
+        if ($("#filter_by_date") != "" ){
+            //to do
+            // where += "and date = $("#filter_by_date").val()"
+
+        }
+
+        if ($("#search_by_client").val() !=""){
+            like = $("#search_by_client").val()
+
+        }else{
+            like = "None"
+        }
+
+        if ($("#search_by_brandname").val() !=""){
+            phone_like = $("#search_by_brandname").val()
+
+        }else{
+            phone_like = "None"
+        }
+        
+    }
+
+    
+    $("#search_by_client").on("click",function(){
+       
+        generat_query()
+
+    }
+    
+
+    )
+    //https://stackoverflow.com/questions/7031226/jquery-checkbox-change-and-click-event
+    $("#check_fixed").change(function(){
+        $('#no_filter').prop('checked', false);
+        generat_query()
+        send_data()
+    })
+
+    $("#no_filter").change(function(){
+        //https://stackoverflow.com/questions/17420534/check-uncheck-checkbox-using-jquery
+        $('#check_fixed').prop('checked', false);
+        $('#check_returned').prop('checked', false);
+        generat_query()
+        send_data()
+    })
+
+    $("#check_returned").change(function(){
+        $('#no_filter').prop('checked', false);
+        generat_query()
+        send_data()
+    })
+
+          
+    
+
+    $("#search_by_client").on("keyup",function(e){
+        $("#search_by_brandname").val("")
+        generat_query()
+        
+        
+        
+        console.log("fixed ="+fixed+" returned ="+returned+" like="+like+" filter="+filter)
+        //bring the device list from the server
+        send_data()
+
+    })
+
+    $("#search_by_brandname").on("keyup",function(e){
+        $("#search_by_client").val("")
+        generat_query()
+        
+        
+        
+        console.log("fixed ="+fixed+" returned ="+returned+" like="+like+" filter="+filter+" phone_like="+phone_like)
+        //bring the device list from the server
+        send_data()
+
+    })
+
+    function send_data (){
+        $.ajax({
+            url: "devices_table/"+fixed+"/"+returned+"/"+like+"/"+filter+"/"+phone_like,
+            type:"get",
+            success: function(response) {
+                //if  success
+                //console.log("im here " +response)
+                $("#devices_table").html(response)
+            },
+            error: function(xhr) {
+                //Do Something to handle error
+                console.log("list of devices did not received")
+            }
+        });
+    }
+    //https://www.spguides.com/bind-current-date-to-date-picker-using-jquery/
+    $(document).ready(function() {
+        var now = new Date();
+        var day = ("0" + now.getDate()).slice(-2);
+        var month = ("0" + (now.getMonth() + 1)).slice(-2);
+        var today = now.getFullYear() + "-" + (month) + "-" + (day);
+        $('#filter_by_date').val(today);
+    });
+
+
+
+</script>
+
+{%endblock%}

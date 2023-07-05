@@ -1,0 +1,500 @@
+{% extends "layout.html" %}
+
+
+{%block title%}Drop Off{%endblock%}
+
+{% block main%}
+
+    <div>
+        <h3 class="text-success"></h3>
+        <h5 class="text-danger"></h5>
+        <br>
+    </div>
+
+    <div class="d-flex flex-column justify-content-center align-items-center">
+
+        <!--client information-->
+        <div class="container section flex-column d-flex gap-3 justify-content-center justify-content-lg-start ">
+            <div class="d-flex col row gap-3" >
+                <H3 class="col-md"><i class="fas fa-user fa-lg"></i> Client Information</H3>
+                <div class="d-flex col-md flex-nowrap gap-3 align-items-center justify-content-center ">
+                    
+                    <select class="form-select col-sm" autofocus name="client_name" id="clients_name">
+                        {% if clients%}
+                            {% for client in clients%}
+                                <option value={{client.id}}>{{client.first_name}} {{client.last_name}} {{client.phone}}</option>
+                            {% endfor%}
+                        {%endif%}
+                        <option value="new">+ New Client</option>
+                        <option selected disabled value="select">Select Client</option>
+                    </select>
+
+                    <form class="col-2" onsubmit=" delete_client();return false;" id="delete_client_form">
+                        <input type="hidden" name="id" id="client_id" >
+                        <button class="btn" type="submit" disabled = on title="delete selected client" id="delete_client_btn"  ><i class="fas fa-user-minus"></i></button>   
+                    </form> 
+                </div>
+            </div>
+
+            
+            
+
+            <div class="row gap-3 align-items-center">
+                
+            
+                <form class=" d-flex justify-content-center d-none" onsubmit="add_client();return false;"  id="add_client_form">
+                    <div class=" row  gap-3 align-items-center justify-content-center ">
+                        <input class="form-control col-lg" autocomplete="off" pattern="\D[a-z]*" type="text" name="first_name" id="first_name" placeholder="First Name" required>
+                        <input class="form-control col-lg" autocomplete="off" pattern="\D[a-z]*" type="text" name="last_name" id="last_name" placeholder="Last Name" required>
+                        <input class="form-control col-lg" id="phone" name="phone" type="text" maxlength="12" autocomplete="off" pattern="(\d{3,3})([ ])(\d{3,3})([ ])\d{4,4}" title="phone must be like ### ### ####" placeholder="phone: ### ### ####" required>    
+                        <input class="btn btn-primary col-lg-2" type="submit" value="Save Client">
+                    </div>
+                </form>  
+    
+        
+            
+            </div>
+            <hr>
+
+        </div>
+        <div class="container section">
+            <!--device liste for selected client-->
+            <div class="container section">
+                <br>
+                <H3 class="d-none" id="device_list"><i class="fas fa-list fa-lg"></i> Devices List</H3>
+                <br>
+                <div class="container" id="list_device_response"></div>
+
+            </div>
+    </div>
+
+<script>
+    // add spaces after every 3 char two times in input phone
+    document.addEventListener("keyup" ,function(e){
+        if (e.target.id=="phone")
+            if (e.target.value.length == 3 || e.target.value.length == 7){
+                e.target.value +=" "
+            }
+    })
+
+    addEventListener("DOMContentLoaded", (event) => {
+        if (document.querySelector("h1[class='text-success']") != null && document.querySelector("h1[class='text-success']").innerHTML != ""){
+            res = document.querySelector("h1[class='text-success']")
+            timer = document.querySelector("h5[class='text-danger']")
+            s = 3
+            a = setInterval(function(){
+                timer.innerHTML =  +s+ " Sec"
+                s -=1
+                if (s < 0){
+                    res.style.display = "none"
+                    timer.style.display = "none"
+                    clearInterval(a)
+                }},1000)
+            }
+        })
+
+    $("#clients_name").change(function(){
+        
+        if (this.value == "new"){
+            $("#add_client_form").removeClass("d-none")
+            $("#delete_client_btn").attr("disabled","true")
+            $("#add_device_form").addClass("d-none")
+            
+            $("#device_list").addClass("d-none")
+            $("#client_id").val(-1)
+            $("#id_client_dev").val(-1)
+            //refresh the devices list info
+            $("#list_device_response"). html("")
+             
+            
+        }
+        //if other option selected instead of NEW
+        else{
+            $("#add_client_form").addClass("d-none")
+            $("#delete_client_btn").removeAttr("disabled")
+            $("#client_id").val($('#clients_name').find(":selected").val())
+            $("#add_device_form").removeClass("d-none")
+            
+            $("#device_list").removeClass("d-none")
+            $("#id_client_dev").val($('#clients_name').find(":selected").val())
+            
+            //use ajax to retrieve the devices list
+            $.ajax({
+                url: "devices_list",
+                type:"get",
+                data: {"id_client": $('#clients_name').find(":selected").val()},
+                success: function(response) {
+                    //if  success
+                    console.log("im here " +response)
+                    $("#list_device_response").html(response)
+                },
+                error: function(xhr) {
+                    //Do Something to handle error
+                    console.log("data did not received "+xhr)
+                }
+            });
+
+        }
+    })
+
+
+    function add_client(){
+        data_form = $("#add_client_form").serializeArray()
+
+        $.ajax({
+            url: "add_client",
+            type:"post",
+            data: data_form,
+            success: function(response) {
+                //if  success
+                console.log(response)
+                // refresh the clients list
+                if (!response[0]["txt"]){
+                    $("#clients_name").html(response)
+                }
+                
+
+                showresult(response)
+                //reset the form
+                $("#add_client_form").trigger("reset")
+               
+
+                    
+            },
+            error: function(xhr) {
+                //Do Something to handle error
+                console.log("data did not received "+xhr)
+            }
+        });
+
+    }
+
+    function delete_client(){
+        if (confirm("are you sure you want to delete this client \'all information related to him will be delete\'")){
+            data_form = $("#delete_client_form").serializeArray()
+    
+            $.ajax({
+
+                url: "delete_client",
+                type: "post",
+                data: data_form,
+                success:function(response){  
+                    console.log(response)
+
+                    //check if there is no message, it mean there we received a data and we must inject its to the page 
+                    if (!response[0]["txt"]){
+                        $("#clients_name").html(response)
+                    }
+
+                    //show result in txt div
+                    showresult(response[0])
+
+                    //clear the devices list content
+                    $("#list_device_response").html("")
+                    
+                    
+                },
+                error: function(xhr){
+                    console.log("error happened "+xhr)
+
+                }
+            })
+
+        }
+        
+        
+    }
+
+    //repare the device
+    function repair(){
+        
+        data_form = $("#repair_device_form").serializeArray()
+        $.ajax({
+
+            url: "drop_off",
+            type: "post",
+            data: data_form,
+            success:function(response){  
+                console.log("reparation success",response)
+
+                if (!response[0]["txt"]){
+                    $("#list_device_response").html(response)
+                }else{
+                //show result in txt div
+                showresult(response[0])
+                }
+               
+   
+            },
+            error: function(xhr){
+                console.log("error happened "+xhr)
+
+            }
+        })
+        $("#reparation_device_modal").modal("hide")
+
+    }
+
+    //this function show what the server response as result of operation
+    function showresult(ss){
+        $("html, body").animate({ scrollTop: 0 }, 500); 
+        res = document.querySelector("h3[class='text-success']")  
+        res.style.display = "block"
+        if (!ss[0]["txt"]){
+            res.innerHTML = "operation has succeeded"
+        }else{
+            res.innerHTML = ss[0]["txt"] 
+        }
+        
+        s = 3
+        a = setInterval(function(){
+            s -=1
+            if (s < 0){
+                res.style.display = "none"
+                clearInterval(a)
+            }},1000)           
+    }
+
+    //on modal show up update some information on it and bring list of the problems with ajax 
+    $("#reparation_device_modal").on("show.bs.modal", function(event){
+         // Button that triggered the modal
+        var button = event.relatedTarget
+        // Extract info from data-bs-information attributes
+        var data = button.getAttribute('data-bs-info')
+        //split it in each ";" found
+        data = data.split(";")
+        console.log(data)
+    
+
+        var id_client = data[0]
+        var first_name = data[1]
+        var  last_name = data[2]
+        //replace every &&& with space
+        var phone = data[3].replace(/&&&/g," ")
+        var total_cost = data[4]
+        var deposit = data[5]
+        var rest = data[6]
+        var device_id = data[7]
+        var brand =data[8]
+        var name = data[9].replace(/&&&/g," ")
+        var descr = data[10].replace(/&&&/g," ")
+        
+
+        // Update the modal's content.
+        $("#reparation_device_modal")[0].querySelector('#client_name').innerHTML =first_name+' '+last_name 
+        $("#reparation_device_modal")[0].querySelector('#client_phone').innerHTML = phone
+        $("#reparation_device_modal")[0].querySelector('#device_id').innerHTML ="<u>ID:</u> " +device_id 
+        $("#reparation_device_modal")[0].querySelector('#device_brand').innerHTML ="<u>Brand:</u> "+ brand 
+        $("#reparation_device_modal")[0].querySelector('#device_name').innerHTML ="<u>Name:</u> "+ name
+        $("#reparation_device_modal")[0].querySelector('#device_desc').innerHTML =' <u>Description:</u> ' + descr
+
+        //update the modal's contents that will be posted 
+        $("#reparation_device_modal")[0].querySelector('#id_client').value = id_client
+        $("#reparation_device_modal")[0].querySelector('#id_device').value = device_id
+
+        //retrieve the problems list
+        console.log("hello there")
+        $.ajax({
+            url: "problems_list",
+            type:"get",
+            //dataType :"html",
+            success: function(response) {
+                //if  success
+                console.log("im here " +response)
+                $("#problem_select_list").html(response)
+            },
+            error: function(xhr) {
+                //Do Something to handle error
+                console.log("list of problem did not received ")
+            }
+        });
+    })
+
+    
+    
+    
+    
+    function add_device(){
+        data_form = $("#add_device_form").serializeArray()
+        console.log(data_form)
+
+        $.ajax({
+            url: "add_device",
+            type:"post",
+            data: data_form,
+            success: function(response) {
+                //if  success
+                console.log(response)
+                //check if there is no message, it mean there we received a data and we must inject its to the page 
+                if (!response[0]["txt"]){
+                $("#list_device_response").html(response)
+                }
+                //show result in txt div
+                showresult(response)
+
+                //reset the form
+                $("#add_device_form").trigger("reset")
+              
+            },
+            error: function(xhr) {
+                //Do Something to handle error
+                console.log("data did not received "+xhr)
+            }
+        });
+        $("#add_device_modal").modal("hide")
+
+    }
+    //give the function two parameters "client id and device id" why? -> to be able to delete the correct device for the correct client
+    function del_device(id_client,id_device){
+        if (confirm("are you sure")){
+            data_form = $("#"+id_client+id_device).serializeArray()
+            $.ajax({ 
+                url: "del_device",
+                type:"post",
+                data: data_form,
+                success: function(response) {
+                    //if  success
+                    //console.log(response)
+                    //check if there is no message, it mean that we received an object not string and we must inject its to the page 
+                    if (!response[0]["txt"]){
+                    $("#list_device_response").html(response)
+                    }
+                    //show result in txt div
+                    showresult(response[0])   
+                },
+                error: function(xhr) {
+                    //Do Something to handle error
+                    console.log("data did not received "+xhr)
+                }
+            });
+        }
+        
+    }
+
+
+    $("#problem_select_list").on("change",function(){
+        //console.log($('#problem_select_list').find(":selected").html())
+        //select the html value of the option instead of value ".val()"
+        //select description without the price
+        description = $('#problem_select_list').find(":selected").html()
+        //description1 = $.map(description.split(" "), function(value,index){
+        //    return index <(description.split(" ").length-1) ? value:null
+        //})
+        //description1= description1.join(" ")
+        //extract the text description and price 
+        textdesc = ""
+        $.map(description.split(" "), function(value,index){
+            
+            return index <(description.split(" ").length-1) ? textdesc+=value+" ":price=value
+        })
+        console.log("textdesc and price ",textdesc,price)
+
+        //extract the price
+        //price = parseFloat(description.split(" ")[description.split(" ").length-1])
+        //console.log("price is ",price)
+        $("#reparation_device_modal")[0].querySelector('#desc').value = textdesc
+        $("#reparation_device_modal")[0].querySelector('#price').value = price
+
+
+    })
+
+    //pick up the device by the client
+    function pickup(){
+        data_form = $("#pickup_device_form").serializeArray()
+        $.ajax({ 
+            url: "pick_up",
+            type:"post",
+            data: data_form,
+            success: function(response) {
+                //if  success
+                //console.log(response)
+                //check if there is no message, it mean that we received an object not string and we must inject its to the page 
+                if (!response[0]["txt"]){
+                $("#list_device_response").html(response)
+                }
+
+                //show result in txt div
+                showresult(response)   
+            },
+            error: function(xhr) {
+                //Do Something to handle error
+                console.log("data did not received "+xhr)
+            }
+        });
+
+        $("#pickup_device_modal").modal("hide");
+        
+        
+    }
+
+
+    //on modal show up update some information on it and bring list of the problems with ajax 
+    $("#pickup_device_modal").on("show.bs.modal", function(event){
+        // Button that triggered the modal
+       var button = event.relatedTarget
+       // Extract info from data-bs-information attributes
+       var data = button.getAttribute('data-bs-infor')
+       //split it in each ";" found
+       data = data.split(";")
+       console.log(data)
+   
+
+       var id_client = data[0]
+       var device_id = data[1]
+       //update content of the modal
+       $("#pickup_device_modal")[0].querySelector('#payed').checked = false
+
+       //update the modal's contents that will be posted 
+       $("#pickup_device_modal")[0].querySelector('#id_client').value = id_client
+       $("#pickup_device_modal")[0].querySelector('#id_device').value = device_id
+    })
+
+
+    $("#issue_init").on("keyup",function(e){
+        console.log("hello",this.value)
+        //bring init from database
+        $.ajax({ 
+            url: "get_init_problem",
+            type:"get",
+            data: {"ss":this.value},
+            success: function(response) {
+                //if  success
+                console.log(response)
+                //check if there is no message, it mean that we received an object not string and we must inject its to the page 
+                
+                $("#suggestions").html(response)
+                
+  
+            },
+            error: function(xhr) {
+                //Do Something to handle error
+                console.log("data did not received "+xhr)
+            }
+        });
+    })
+
+
+    //update the init problem list in add device modal
+    $("#add_device_modal").on("show.bs.modal", function(event){
+        //retrieve the problems list
+        $.ajax({
+            url: "problems_list",
+            type:"get",
+            //dataType :"html",
+            success: function(response) {
+                //if  success
+                console.log("im here " +response)
+                $("#problem_select_list_add_device").html(response)
+                
+            },
+            error: function(xhr) {
+                //Do Something to handle error
+                console.log("list of problem did not received ")
+            }
+        });
+   })
+
+
+</script>
+
+{% endblock %}

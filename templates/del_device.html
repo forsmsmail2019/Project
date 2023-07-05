@@ -1,0 +1,46 @@
+{%if devices%}
+
+<table class="align-middle table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Phone Brand</th>
+            <th scope="col">Phone Name</th>
+            <th scope="col">Issue Description</th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for device in devices %}
+            <tr>
+                <td>{{loop.index}}</td>
+                <td>{{device.brand}}</td>
+                <td>{{device.name}}</td>
+                <td>{{device.descr}}</td>
+                <td>
+                    <form class="d-flex justify-content-center gap-2" onsubmit="del_device({{device.id_client}},{{device.id}});return false;" id="{{device.id_client}}{{device.id}}">
+                        <input  type="hidden" name="id_device" value={{device.id}}>
+                        <input type="hidden" name="id_client" value={{device.id_client}}>                                                                                                                                                            <!--replace any space with &&&-->                                                                                                
+                        {%if not device.fixed and not device.returned%}                                                                                                                                                                                       <!--replace any space with &&&--> 
+                            <a type="button" class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#reparation_device_modal" data-bs-info={{device.id_client}};{{device.first_name}};{{device.last_name}};{{device.phone|replace(' ','&&&')}};{{device.total_cost}};{{device.deposit}};{{device.rest}};{{device.id}};{{device.brand}};{{device.name}};{{device.descr|replace(' ','&&&')}}>Fix It</a>
+                        {%endif%}
+                        {%if not device.returned%}
+                            <a type="button" class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#pickup_device_modal" data-bs-info={{device.id_client}};{{device.total_cost}};{{device.deposit}};{{device.rest}};{{device.id}}>Return It</a>
+                        {%endif%}
+                        <button class="btn btn-danger" type="submit" title="delete device"><i class="fas fa-trash-can"></i></button>   
+                    </form>
+                </td>
+            </tr>
+        {%endfor%}
+    </tbody>
+</table>
+<!-- add device button-->
+<div class="d-flex justify-content-start">
+    <a type="button" class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#add_device_modal" title="Add device" data-bs-info=;;;;{{"device descr"|replace(' ','&&&')}}>+</a>
+</div>
+{%else%}
+    <br>
+    <H3 id="device_list_title" class="  text-info ">No Device exist for this client <a type="button" class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#add_device_modal" title="Add device" data-bs-info=;;;;{{"device descr"|replace(' ','&&&')}}>+</a>
+    </H3>
+    <br>
+{%endif%}

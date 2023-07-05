@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{%block title%}History{%endblock%}
+
+{% block main%}
+    {%if histo %}
+    <div class="container-md d-flex justify-content-center">
+        <table class="table mt-5  table-success table-striped md" >
+            <tbody >
+
+                    <tr>
+                        <th>Date and Time</th>
+                        <th class="text-center">Action</th>
+                        
+                    </tr>
+
+                    {% for h in histo %}
+                    <tr>
+                        <td>{{h.at}}</td>
+                        <td class=" text-center text-capitalize" >{{h.action}}</td>
+                        </tr>
+                    {% endfor %}
+
+                    </tr>
+
+            </tbody>
+          </table>
+
+    </div>
+
+    {%else%}
+        <h1 class="text-info">There Is No History To Show</h1>
+    {%endif%}
+
+{% endblock %}

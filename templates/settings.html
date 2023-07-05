@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block main %}
+    <div class=" container ">
+
+        <div>
+            <h1 class="text-success">{{txt}}</h1>
+            <h5 class="text-danger">{%if txt%}You Will Be Redirect In 4 Sec{%endif%}</h5>
+            <br>
+        </div>
+
+        <div class=" d-flex flex-wrap gap-3 justify-content-center align-items-center">
+           
+
+            <div class="d-flex m-0 flex-column gap-3 justify-content-center align-items-center ">
+                
+
+                <form  class=" d-flex flex-column flex-wrap gap-3 justify-content-center "autocomplete="off" action="/settings" method="post">
+                    <div class="d-flex justify-content-center gap-3 " >
+                        <div class="  text-md-start">
+                            <input class="form-check-input" name="update_pass" type="checkbox" id="check_update_pass" >
+                            <label class="form-check-label" for="check_update_pass"><h5>Update My Password</h5></label>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 flex-wrap flex-lg-nowrap d-none align-items-center justify-content-center" id="sec_pass">
+                        <label  class="col-6 text-lg-end " for="old_pass"><h5 class="mb-0">Change Password</h5> </label>
+                        <input class=" form-control col-6 w-50 text-center" type="Password"   name="old_pass"  id="old_pass" placeholder="Current pass.">
+                    </div>
+                    <div class="d-flex gap-3 flex-wrap flex-md-nowrap d-none align-items-center justify-content-center" id="sec_new_pass">
+                        <label  class="col-6 text-lg-end" for="new_pass"><h5 class="mb-0">New Password</h5> </label>
+                        <input class="form-control col-6 w-50 text-center "  type="Password"   name="new_pass"  id="new_pass" placeholder="New pass.">
+                    </div>
+                    <div class="d-flex gap-3 flex-wrap flex-md-nowrap d-none align-items-center justify-content-center" id="sec_pass_con">
+                        <label  class="col-6 text-lg-end" for="new_pass"><h5 class="mb-0">Confirm Password</h5> </label>
+                        <input class="form-control col-6 w-50 text-center"  type="Password"  name="conf_new_pass"  id="conf_new_pass" placeholder="Confirm The New pass.">
+                    </div>
+                    <div>
+                        <button id="submit_pass_btn" class="btn btn-primary d-none" type="submit">Submit</button>
+                    </div>
+
+
+
+
+
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        check_pass = document.querySelector("#check_update_pass")
+        check_pass.addEventListener("click",function(e){
+            var section_pass = document.querySelector("#sec_pass")
+            var section_pass_con = document.querySelector("#sec_pass_con")
+            var sec_new_pass = document.querySelector("#sec_new_pass")
+            var submit_pass_btn = document.querySelector("#submit_pass_btn")
+            if (check_pass["checked"]){
+                section_pass.classList.remove("d-none")
+                section_pass_con.classList.remove("d-none")
+                submit_pass_btn.classList.remove("d-none")
+                sec_new_pass.classList.remove("d-none")
+
+                section_pass.children['old_pass'].value=""
+                section_pass_con.children['conf_new_pass'].value=""
+                sec_new_pass.children['new_pass'].value=""
+
+            }else{
+
+                section_pass.classList.add("d-none")
+                section_pass_con.classList.add("d-none")
+                submit_pass_btn.classList.add("d-none")
+                sec_new_pass.classList.add("d-none")
+
+            }
+        });
+
+        if (document.querySelector("h1[class='text-success']") != null &&
+        document.querySelector("h1[class='text-success']").innerHTML != ""){
+            console.log(document.querySelector("h1[class='text-success']"));
+            res = document.querySelector("h1[class='text-success']")
+            timer = document.querySelector("h5[class='text-danger']")
+            s = 3
+            a = setInterval(function(){
+                    timer.innerHTML =  "You Will Be Refreshed In " +s+ " Sec"
+                    s -=1
+                    if (s < 0){
+                        window.location.replace("/settings");
+                    }
+                },1000)};
+
+
+    </script>
+{% endblock %}

@@ -1,0 +1,34 @@
+<table class="align-middle table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Client Name</th>
+            <th scope="col">Client's Phone</th>
+            <th scope="col">Total Cost</th>
+            <th scope="col">Paid</th>
+            <th scope="col">Rest</th>
+            <th scope="col">Phone Brand</th>
+            <th scope="col">Phone Name</th>
+            <th scope="col">Issue Description</th>
+            <th scope="col">price</th>
+            
+
+        </tr>
+    </thead>
+    <tbody>
+        {% for device in devices %}
+            <tr>
+                <td>{{loop.index}}</td>
+                <td>{{device.first_name}} {{device.last_name}}</td>
+                <td>{{device.phone}}</td>
+                <td>{{"{:,.2f}".format(device.total_cost)}}</td>
+                <td>{{"{:,.2f}".format(device.deposit)}}</td>
+                <td>{{"{:,.2f}".format(device.rest)}}</td>
+                <td>{{device.brand}}</td>
+                <td>{{device.name}}</td>
+                <td>{{device.descr}}</td>
+                <td>{{"{:,.2f}".format(device.price)}}</td>
+            </tr>
+        {%endfor%}
+    </tbody>
+</table>

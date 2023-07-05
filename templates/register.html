@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}Registeration{% endblock%}
+
+{% block main %}
+    <form class="d-flex flex-column  gap-3   " action="/register" method="post">
+
+            <input class=" form-control mx-auto w-auto" type="text" autofocus autocomplete="off" off name="username"  id="username" placeholder="User Name">
+            <input class=" form-control mx-auto w-auto" type="password" name="password"  id="password" placeholder="Password">
+            <input class=" form-control mx-auto w-auto" type="password" name="confirmation"  id="repassword" placeholder="Repeat Password">
+
+        <button class="btn btn-primary mx-auto w-auto w-25" type="submit">Register Me</button>
+
+    </form>
+{% endblock %}

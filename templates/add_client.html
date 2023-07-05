@@ -1,0 +1,5 @@
+{%for client in clients%}
+    <option value={{client.id}}>{{client.first_name}} {{client.last_name}} {{client.phone}}</option>
+{%endfor%}
+    <option value="new">+ New Client</option>  
+    <option selected="" disabled="" value="select">Select Client</option>
